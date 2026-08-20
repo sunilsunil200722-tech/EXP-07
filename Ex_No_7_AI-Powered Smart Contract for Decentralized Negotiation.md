@@ -1,4 +1,6 @@
 # Experiment 7: AI-Powered Smart Contract for Decentralized Negotiation
+# Name: SUBIKSHA K
+# Reg No.: 212224040332 
 # Aim:
 # To create a smart contract that integrates AI logic for automated negotiation in decentralized commerce. The contract adjusts price and conditions dynamically based on real-time market trends using an on-chain AI model.
 
@@ -116,6 +118,11 @@ Can be extended to AI oracles for real-time market data.
 
 Inspired by AI-enhanced commerce and eBay-like decentralized auctions.
 
+
+<img width="1920" height="1200" alt="Screenshot 2026-08-20 135011" src="https://github.com/user-attachments/assets/a898f0cd-f539-4e3d-a576-0359a4ce93b3" />
+
+<img width="1920" height="1200" alt="Screenshot 2026-08-20 135024" src="https://github.com/user-attachments/assets/06ae7cdf-81bc-4370-851b-9968d483cf0e" />
+
 # RESULT:
 
-
+Thus AI-Powered smart contract for decentralized negotiation is executed successfully.
