@@ -19,7 +19,7 @@ Market demand (tracked using on-chain transactions).
 Historical transaction data.
 
 
-Time-based price fluctuations.
+Time-based price fluctuations
 
 
 ## Step 2: Smart Contract Counteroffer
