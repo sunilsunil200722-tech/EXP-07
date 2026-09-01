@@ -1,121 +1,107 @@
-# Experiment 7: AI-Powered Smart Contract for Decentralized Negotiation
+# Experiment 4: DeFi Lending and Borrowing Protocol
 # Aim:
-# To create a smart contract that integrates AI logic for automated negotiation in decentralized commerce. The contract adjusts price and conditions dynamically based on real-time market trends using an on-chain AI model.
+To build a decentralized lending protocol where users can deposit assets to earn interest and borrow assets by providing collateral. This experiment introduces concepts like overcollateralization, liquidity pools, and interest accrual in DeFi.
 
 # Algorithm:
-## Step 1: AI-Powered Dynamic Pricing
-Seller lists an item with a minimum price and negotiation range.
+Step 1: Setup Lending and Borrowing Mechanism
+Users deposit ETH into the contract as liquidity.
 
 
-Buyer submits an offer price.
+Depositors receive interest based on their deposits.
 
 
-AI logic (simulated using Solidity algorithms) evaluates the price based on:
+Borrowers can borrow ETH but must provide collateral (e.g., 150% of the borrowed amount).
 
 
-Market demand (tracked using on-chain transactions).
+Interest on borrowed funds is calculated dynamically based on utilization rate.
 
 
-Historical transaction data.
+Step 2: Implement Overcollateralization
+If a borrower’s collateral value drops below a certain liquidation threshold, their collateral is liquidated to repay the debt.
 
 
-Time-based price fluctuations.
-
-
-## Step 2: Smart Contract Counteroffer
-The contract automatically generates a counteroffer if the buyer’s price is within the negotiation range.
-
-
-If the buyer accepts, the transaction is executed on-chain.
-
-
-## Step 3: Settlement and Price Learning
-Every completed transaction updates the price learning algorithm to refine future pricing decisions.
+Step 3: Allow Liquidation
+If collateral < liquidation threshold, liquidators can repay the borrower's debt and claim their collateral at a discount.
 
 
 
-# Program:
+Program:
 ```
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract AIPoweredNegotiation {
-    struct Item {
-        address seller;
-        uint256 minPrice;
-        uint256 maxPrice;
-        uint256 basePrice;
-        bool sold;
+contract DeFiLending {
+    address public owner;
+    uint256 public interestRate = 5; // 5% interest per cycle
+    uint256 public liquidationThreshold = 150; // 150% collateralization
+    mapping(address => uint256) public deposits;
+    mapping(address => uint256) public borrowed;
+    mapping(address => uint256) public collateral;
+
+    event Deposited(address indexed user, uint256 amount);
+    event Borrowed(address indexed user, uint256 amount, uint256 collateral);
+    event Liquidated(address indexed user, uint256 debtRepaid, uint256 collateralSeized);
+
+    constructor() {
+        owner = msg.sender;
     }
 
-    mapping(uint256 => Item) public items;
-    uint256 public itemCount;
-
-    event ItemListed(uint256 itemId, uint256 basePrice);
-    event OfferMade(uint256 itemId, address buyer, uint256 offer);
-    event CounterOffer(uint256 itemId, uint256 counterOffer);
-    event Sold(uint256 itemId, address buyer, uint256 finalPrice);
-
-    function listItem(uint256 _basePrice, uint256 _minPrice, uint256 _maxPrice) public {
-        require(_minPrice <= _basePrice && _basePrice <= _maxPrice, "Invalid price range");
-        
-        items[itemCount] = Item(msg.sender, _minPrice, _maxPrice, _basePrice, false);
-        emit ItemListed(itemCount, _basePrice);
-        itemCount++;
+    function deposit() public payable {
+        require(msg.value > 0, "Deposit must be greater than zero");
+        deposits[msg.sender] += msg.value;
+        emit Deposited(msg.sender, msg.value);
     }
 
-    function makeOffer(uint256 _itemId, uint256 _offerPrice) public payable {
-        Item storage item = items[_itemId];
-        require(!item.sold, "Item already sold");
-        require(msg.value == _offerPrice, "Incorrect offer amount");
-
-        emit OfferMade(_itemId, msg.sender, _offerPrice);
-
-        uint256 aiCounterOffer = dynamicPricing(item.basePrice, item.minPrice, item.maxPrice, _offerPrice);
-
-        if (_offerPrice >= aiCounterOffer) {
-            item.sold = true;
-            payable(item.seller).transfer(_offerPrice);
-            emit Sold(_itemId, msg.sender, _offerPrice);
-        } else {
-            payable(msg.sender).transfer(_offerPrice); // Refund buyer
-            emit CounterOffer(_itemId, aiCounterOffer);
-        }
+    function borrow(uint256 amount) public payable {
+        require(msg.value >= (amount * liquidationThreshold) / 100, "Not enough collateral");
+        borrowed[msg.sender] += amount;
+        collateral[msg.sender] += msg.value;
+        payable(msg.sender).transfer(amount);
+        emit Borrowed(msg.sender, amount, msg.value);
     }
 
-    function dynamicPricing(uint256 base, uint256 min, uint256 max, uint256 offer) private pure returns (uint256) {
-        if (offer >= max) return max;
-        if (offer >= base) return base;
-        uint256 counter =(base+offer)/2;
-        return counter < min ? min : counter; // Enforce a Minimum bound
-        
+    function liquidate(address borrower) public {
+        require(collateral[borrower] < (borrowed[borrower] * liquidationThreshold) / 100, "Not eligible for liquidation");
+        uint256 debt = borrowed[borrower];
+        uint256 seizedCollateral = collateral[borrower];
+
+        borrowed[borrower] = 0;
+        collateral[borrower] = 0;
+        payable(msg.sender).transfer(seizedCollateral);
+        emit Liquidated(borrower, debt, seizedCollateral);
     }
 }
+
 ```
-
 # Expected Output:
-Buyers submit offers, and the contract auto-negotiates the price.
+Users can deposit ETH and earn interest.
 
 
-If the buyer’s offer is fair, the deal is executed.
+Users can borrow ETH by providing collateral.
 
 
-If the offer is too low, the contract suggests a counteroffer.
+If collateral < 150% of borrowed amount, liquidators can seize the collateral.
 
 
 
 # High-Level Overview:
-First-of-its-kind AI-powered pricing contract.
+Teaches key DeFi concepts: lending, borrowing, collateral, liquidation.
 
 
-Mimics real-world price negotiations using dynamic on-chain pricing.
+Introduces risk management: overcollateralization and liquidation.
 
 
-Can be extended to AI oracles for real-time market data.
+Directly related to DeFi protocols like Aave and Compound.
+
+# Output:
 
 
-Inspired by AI-enhanced commerce and eBay-like decentralized auctions.
+<img width="1920" height="1200" alt="Screenshot 2026-08-20 142743" src="https://github.com/user-attachments/assets/638c33b8-990f-4d9d-b6e6-99902b970cd2" />
 
-# RESULT:
+<img width="1920" height="1200" alt="Screenshot 2026-08-20 142827" src="https://github.com/user-attachments/assets/4ff00404-93bf-46da-abac-800d4916c8f3" />
+
+# RESULT : 
+
+Thus decentralized lending protocol where users can deposit assets to earn interest and borrow assets by providing collateral is executed successfully.
 
 
